@@ -31,26 +31,28 @@ def send_value(message):
 
 @bot.message_handler(commands=['event'])
 def send_value(message):
+    now_date = (datetime.datetime.now() + datetime.timedelta(days=1))
+    text = f'Мероприятия на завтра: {now_date.strftime("%d-%m-%Y")}'
+
     connection = sqlite3.connect('\\\\192.168.3.116\infosys\infosys\db.sqlite3')
     cursor = connection.cursor()
-    cursor.execute('SELECT * FROM events_event')
+    request = f'SELECT * FROM events_event as d WHERE d.data = "{now_date.strftime("%Y-%m-%d")}"'
+    cursor.execute(request)
     events = cursor.fetchall()
 
-    now_date = (datetime.datetime.now()+datetime.timedelta(days=1))
-    text_date = now_date.strftime("%d-%m-%Y")
-    text = f"Мероприятия на завтра: {text_date}"
-
-    for event in events:
-        if event[10] == now_date.strftime("%Y-%m-%d"):
+    if not events:
+        text += '\nЗавтра мероприятий нет.'
+    else:
+        for event in events:
             sql = f"SELECT m.hall_name FROM events_halls as m, events_event as p, events_location as cp" \
                   f" WHERE p.id = {event[0]} AND cp.event_id = p.id AND cp.hall_id = m.id"
             cursor.execute(sql)
             halls = cursor.fetchall()
             hall = ""
             for i in halls:
-                for j in i:
-                    hall += f'{j},  '
+                for j in i: hall += f'{j},  '
             text += f'\n({event[3][:5]}-{event[4][:5]}) - {event[1]} \n Залы: {hall}\n-----'
+
     connection.close()
     bot.reply_to(message, text)
 
@@ -112,7 +114,7 @@ def convert(message: telebot.types.Message):
         first, second, amount = message.text.split(' ')
         # Вызов функции из модуля extension, переводящего валюту
         itog = ProcessingRequest.get_price(first, second, amount)
-    except APIException as e:   # вызов пользовательских исключений
+    except APIException as e:  # вызов пользовательских исключений
         bot.reply_to(message, f"{e} \n Введите /help - для помощи")
     except Exception as e:  # вызов системных исключений
         bot.reply_to(message, f"Произошла какая-то ошибка \n {e}")
