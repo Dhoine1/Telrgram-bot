@@ -29,12 +29,12 @@ class ProcessingRequest:
         if str.upper(base) == "RUB":
             currency_first = 1
         else:
-            currency_first = data['Valute'][str.upper(base)]['Value']
+            currency_first = data['Valute'][str.upper(base)]['Value']/data['Valute'][str.upper(base)]['Nominal']
 
         if str.upper(quote) == "RUB":
             currency_second = 1
         else:
-            currency_second = data['Valute'][str.upper(quote)]['Value']
+            currency_second = data['Valute'][str.upper(quote)]['Value']/data['Valute'][str.upper(quote)]['Nominal']
 
         # Вычисление отношения валют друг к другу, на основании их курса к рублю.
         itog = round((currency_first / currency_second) * float(amount), 2)
